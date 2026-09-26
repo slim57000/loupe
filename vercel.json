@@ -5,7 +5,7 @@
   "installCommand": "npm ci",
   "framework": null,
   "functions": {
-    "api/[[...path]].mjs": {
+    "api/[...path].mjs": {
       "maxDuration": 30
     }
   },
