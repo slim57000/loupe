@@ -242,6 +242,27 @@ async function visionAnalyze(input) {
   return data.responses?.[0] || {};
 }
 
+async function searchEbay(input) {
+  if (!process.env.EBAY_APP_ID || !process.env.EBAY_CERT_ID) throw httpError(503, 'La recherche eBay n’est pas configurée.');
+  const auth = Buffer.from(`${process.env.EBAY_APP_ID}:${process.env.EBAY_CERT_ID}`).toString('base64');
+  const tokenUrl = new URL('https://api.ebay.com/identity/v1/oauth2/token');
+  const token = await externalJson(tokenUrl, { method: 'POST', headers: { Authorization: `Basic ${auth}`, 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'client_credentials', scope: 'https://api.ebay.com/oauth/api_scope' }) });
+  const url = new URL('https://api.ebay.com/buy/browse/v1/item_summary/search');
+  url.searchParams.set('q', text(input.query, 'query', 2, 180));
+  url.searchParams.set('limit', '20');
+  const data = await externalJson(url, { headers: { Authorization: `Bearer ${token.access_token}`, 'X-EBAY-C-MARKETPLACE-ID': 'EBAY_US' } });
+  return (data.itemSummaries || []).map((item) => ({ title: item.title || 'Sans titre', brand: item.brand || '', image: item.image?.imageUrl || '', url: item.itemWebUrl || '', source: 'eBay', sourceUrl: 'https://www.ebay.com/' }));
+}
+
+async function searchBestBuy(input) {
+  if (!process.env.BESTBUY_KEY) throw httpError(503, 'La recherche Best Buy n’est pas configurée.');
+  const url = new URL('https://api.bestbuy.com/v1/products');
+  url.searchParams.set('search', text(input.query, 'query', 2, 180));
+  url.searchParams.set('apiKey', process.env.BESTBUY_KEY);
+  const data = await externalJson(url);
+  return (data.products || []).map((product) => ({ title: product.name || 'Sans titre', brand: product.manufacturer || '', image: product.image || '', url: product.productLink || '', source: 'Best Buy', sourceUrl: 'https://www.bestbuy.com/' }));
+}
+
 async function inspectPage(sourceUrl) {
   const url = new URL(sourceUrl);
   if (url.protocol !== 'https:' || url.username || url.password) throw httpError(400, 'Seule une adresse HTTPS publique sans identifiant est acceptée.');
@@ -259,9 +280,9 @@ async function inspectPage(sourceUrl) {
   return { sourceUrl, title, description, canonical, text: textContent, links, readAt: new Date().toISOString() };
 }
 
-export default async function handler(req, res) {
+export default async function handler(req, res, forcedRoute = '') {
   const parts = Array.isArray(req.query.path) ? req.query.path : req.query.path ? [req.query.path] : [];
-  const route = parts.join('/');
+  const route = forcedRoute || parts.join('/');
   try {
     if (req.method === 'GET' && route === 'public-config') return json(res, 200, { authRequired: tokens.length > 0, maxImageMb: portImageMb });
     if (!authorized(req)) return json(res, 401, { error: 'Code d’accès manquant ou invalide.' });
@@ -273,6 +294,8 @@ export default async function handler(req, res) {
     if (req.method === 'POST' && route === 'search/web') return json(res, 200, { results: await searchWeb(text(input.query, 'query', 2, 250)) });
     if (req.method === 'POST' && route === 'search/serpapi') return json(res, 200, await searchSerpapi(input));
     if (req.method === 'POST' && route === 'search/tattoos') return json(res, 200, { results: (await searchWeb(text(input.query, 'query', 2, 250))).map((item) => ({ ...item, source: 'Recherche de tatouages' })) });
+    if (req.method === 'POST' && route === 'search/ebay') return json(res, 200, { results: await searchEbay(input) });
+    if (req.method === 'POST' && route === 'search/bestbuy') return json(res, 200, { results: await searchBestBuy(input) });
     if (req.method === 'POST' && route === 'upc/lookup') return json(res, 200, { results: await lookupUpc(text(String(input.upc || '').trim(), 'code-barres', 8, 14)) });
     if (req.method === 'POST' && route === 'wikidata/brand') return json(res, 200, await wikidataBrand(text(input.brandName, 'nom de marque', 2, 120)));
     if (req.method === 'POST' && route === 'program/import') return json(res, 200, await importProgram(text(input.program, 'programme officiel', 1, 40)));

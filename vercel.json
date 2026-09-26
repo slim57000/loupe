@@ -4,11 +4,6 @@
   "outputDirectory": "public",
   "installCommand": "npm ci",
   "framework": null,
-  "functions": {
-    "api/[...path].mjs": {
-      "maxDuration": 30
-    }
-  },
   "headers": [
     {
       "source": "/(.*)",
