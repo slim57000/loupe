@@ -970,6 +970,46 @@ async function analyzeItem(item, showResults = false) {
   return analysis;
 }
 
+function suggestedSearchQueries(item, analysis) {
+  const base = unique([
+    item.reference,
+    analysis.brand,
+    ...(analysis.keywords || []).slice(0, 5),
+    typeLabels[item.type]
+  ]).join(' ');
+  const country = analysis.countryCandidates?.[0] || '';
+  const queries = [base, [base, country].filter(Boolean).join(' '), [typeLabels[item.type], base, 'achat'].filter(Boolean).join(' ')]
+    .map((value) => value.replace(/\s+/g, ' ').trim())
+    .filter((value) => value.length > 3)
+    .filter((value, index, values) => values.indexOf(value) === index);
+  return queries.slice(0, 4);
+}
+
+function appendSuggestedSearches(item, analysis) {
+  const queries = suggestedSearchQueries(item, analysis);
+  if (!queries.length) return;
+  const section = createElement('section', null, 'result-section');
+  section.append(createElement('h3', 'Recherches complémentaires proposées'));
+  section.append(createElement('p', 'Ces requêtes sont construites à partir des éléments observés. Ouvrez-les, vérifiez les pages et n’utilisez que les sources exactes.', 'field-help'));
+  for (const query of queries) {
+    const block = createElement('div', null, 'finding-card');
+    const content = createElement('div', null, 'finding-content');
+    content.append(createElement('strong', query));
+    const links = createElement('div', null, 'program-actions');
+    const encoded = encodeURIComponent(query);
+    links.append(
+      createLink('Google', `https://www.google.com/search?q=${encoded}`),
+      createLink('Google Images', `https://www.google.com/search?tbm=isch&q=${encoded}`),
+      createLink('Bing', `https://www.bing.com/search?q=${encoded}`),
+      createLink('Shopping', `https://www.google.com/search?tbm=shop&q=${encoded}`)
+    );
+    content.append(links);
+    block.append(content);
+    section.append(block);
+  }
+  resultDialogContent.append(section);
+}
+
 function openFindings(item) {
   const analysis = item.analysis;
   if (!analysis) return;
@@ -986,6 +1026,7 @@ function openFindings(item) {
   resultDialogContent.append(summary);
   appendSourceList('Correspondances visuelles trouvées dans l’analyse', analysis.webPages);
   appendFindingList(analysis.findings);
+  appendSuggestedSearches(item, analysis);
   appendSourceList('Pages de référence issues de l’analyse', (analysis.findings || []).map((entry) => ({ title: entry.title, url: entry.url })));
   if (analysis.errors?.length) {
     const errors = createElement('section', null, 'result-section');

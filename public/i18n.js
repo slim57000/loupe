@@ -162,6 +162,8 @@ const english = {
   'Consulter la source Wikidata': 'View the Wikidata source',
   'Correspondances visuelles trouvées dans l’analyse': 'Visual matches found in the analysis',
   'Résultats de recherche': 'Search results',
+  'Recherches complémentaires proposées': 'Suggested additional searches',
+  'Ces requêtes sont construites à partir des éléments observés. Ouvrez-les, vérifiez les pages et n’utilisez que les sources exactes.': 'These queries are built from observed elements. Open them, check the pages and use only exact sources.',
   'Aucun résultat.': 'No results.',
   'Ouvrir le résultat': 'Open the result',
   'Services indisponibles pendant cette analyse': 'Services unavailable during this analysis',
