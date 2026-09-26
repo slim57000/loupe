@@ -118,6 +118,17 @@ docker compose --profile https up -d --build
 
 Caddy obtient automatiquement le certificat TLS. Le port direct de Loupe reste lié à `127.0.0.1` et n’est pas exposé publiquement.
 
+## Option Vercel
+
+Le dépôt contient aussi une fonction Vercel pour un déploiement de démonstration ou un petit serveur. Le projet principal reste Docker.
+
+1. Importe le dépôt dans Vercel.
+2. Vercel détecte `vercel.json` et la fonction `api/[[...path]].mjs`.
+3. Ajoute les mêmes variables d’environnement que `.env.example` dans les settings Vercel.
+4. Ne mets pas de clés Google en variable `VITE_*` : elles resteraient visibles dans le navigateur.
+
+Vercel limite le corps d’une requête à environ 4,5 Mo. Loupe réduit donc automatiquement l’image à 3 Mo sur cette cible. Pour un usage réel, Docker ou un VPS reste préférable.
+
 ## Exécution locale sans Docker
 
 Node.js 22 ou plus récent est requis.
@@ -140,7 +151,7 @@ npm start
 | `BESTBUY_KEY` | Non | Recherche Best Buy, principalement aux États-Unis |
 | `ACCESS_TOKENS` | Non | Codes d’accès séparés par des virgules |
 | `RATE_LIMIT` | Non | Requêtes autorisées par IP et par minute, valeur par défaut `60`. Une analyse de fiche peut utiliser 1 à 6 appels. |
-| `MAX_IMAGE_MB` | Non | Taille maximale après compression, valeur par défaut et maximum `10` |
+| `MAX_IMAGE_MB` | Non | Taille maximale après compression : `10` sur Docker, `3` sur Vercel |
 | `CADDY_DOMAIN` | Non | Domaine utilisé par le profil HTTPS |
 
 Aucune clé n’est demandée aux bénévoles. L’exploitant du serveur peut choisir des quotas gratuits ou des services payants pour son instance ; Loupe ne propose ni publicité ni abonnement aux utilisateurs.
