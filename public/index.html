@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Aide aux bénévoles pour documenter des objets et des détails distinctifs visibles dans des images anonymisées publiées par des autorités officielles.">
+  <meta name="color-scheme" content="light dark">
+  <title>Loupe — Aide à l’identification pour signalements</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='26' cy='26' r='17' fill='none' stroke='%230969da' stroke-width='8'/%3E%3Cpath d='m39 39 16 16' stroke='%230969da' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
+</head>
+<body>
+  <div class="app-container">
+    <header class="header">
+      <div>
+        <p class="eyebrow">100 % à code source ouvert · gratuit · sans publicité</p>
+        <h1>Loupe</h1>
+        <p class="subtitle">Aide les bénévoles à rechercher des objets et détails visibles dans les images anonymisées publiées par les autorités.</p>
+      </div>
+      <div class="header-tools">
+        <label class="language-control">
+          <span id="languageLabel">Langue</span>
+          <select id="languageSelect">
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+          </select>
+        </label>
+        <form id="accessForm" class="access-control">
+          <label class="sr-only" for="accessToken">Code d’accès</label>
+          <input id="accessToken" type="password" placeholder="Code d’accès" autocomplete="off" spellcheck="false">
+          <button class="button primary" type="submit">Valider le code d’accès</button>
+          <button id="btnForgetAccess" class="button secondary" type="button" hidden>Effacer le code</button>
+        </form>
+        <p id="accessMessage" class="form-message" role="status"></p>
+      </div>
+    </header>
+
+    <main id="mainContent" hidden>
+      <aside class="notice">
+        <strong>À savoir avant de commencer</strong>
+        <p>Utilisez uniquement des images anonymisées publiées par un programme officiel. L’image ou les termes de recherche sont transmis au service externe configuré sur cette instance. Le serveur ne conserve aucune image. Ne contactez pas une personne et ne la démasquez pas : transmettez les informations à l’agence qui publie l’image.</p>
+      </aside>
+
+      <section class="section" aria-labelledby="stepsTitle">
+        <h2 id="stepsTitle">Mode d’emploi</h2>
+        <ol class="steps">
+          <li><strong>Choisissez le programme</strong><span>Les liens et formulaires correspondent à l’agence.</span></li>
+          <li><strong>Ajoutez l’image ou son adresse</strong><span>Recadrez si nécessaire, puis lancez l’analyse.</span></li>
+          <li><strong>Vérifiez les sources</strong><span>Ouvrez les résultats et transmettez uniquement les indices vérifiés.</span></li>
+        </ol>
+      </section>
+
+      <section class="section" aria-labelledby="programsTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="programsTitle">Agences et programmes officiels</h2>
+            <p class="section-description">Les liens ci-dessous sont ceux publiés par chaque agence. Le programme Interpol « Identify Me » n’est volontairement pas inclus : il sert à identifier des personnes décédées ou des restes humains dont l’identité n’a pas été établie, pas à documenter l’exploitation sexuelle d’enfants.</p>
+          </div>
+        </div>
+        <div id="programsGrid" class="programs-grid"></div>
+      </section>
+
+      <details class="section" id="hotlinesSection">
+        <summary>Signalements internationaux et lignes d’aide</summary>
+        <div id="hotlinesGrid" class="programs-grid"></div>
+      </details>
+
+      <details class="section" id="servicesSection" open>
+        <summary>État du serveur et services disponibles</summary>
+        <div id="servicesList" class="services-list"></div>
+        <p class="section-description">Les clés API restent exclusivement sur le serveur. Les coordonnées des bénévoles contributeurs ne sont pas demandées dans Loupe.</p>
+      </details>
+
+      <section class="section" aria-labelledby="addTitle">
+        <h2 id="addTitle">Ajouter une fiche</h2>
+        <div class="tabs" role="tablist" aria-label="Mode d’ajout">
+          <button id="tab-single" class="tab active" type="button" data-tab="single" role="tab" aria-controls="tabSingle" aria-selected="true">Une fiche</button>
+          <button id="tab-batch" class="tab" type="button" data-tab="batch" role="tab" aria-controls="tabBatch" aria-selected="false">Liste d’adresses</button>
+        </div>
+
+        <div id="tabSingle" class="tab-panel active" role="tabpanel" aria-labelledby="tab-single" tabindex="0">
+          <form id="formSingle" class="stack-form">
+            <div class="form-grid">
+              <label>Agence / programme<select id="itemProgram" required></select></label>
+              <label>Nature de la fiche<select id="itemType" required></select></label>
+            </div>
+            <div class="form-grid">
+              <label>Référence officielle<input id="itemRef" type="text" maxlength="80" placeholder="Ex. 25-0004" autocomplete="off"></label>
+              <label>Adresse de l’image<input id="itemImageUrl" type="url" pattern="https://.+" title="L’adresse doit commencer par https://" placeholder="https://…" autocomplete="url"></label>
+            </div>
+            <label>Ou importez une image depuis cet appareil<input id="itemImageFile" type="file" accept="image/jpeg,image/png,image/webp"></label>
+            <p id="localImageStatus" class="field-help"></p>
+            <label>Page source exacte<input id="itemSourceUrl" type="url" pattern="https://.+" title="L’adresse doit commencer par https://" placeholder="Adresse de la page officielle" autocomplete="url"></label>
+            <label>Description factuelle<textarea id="itemDescription" maxlength="4000" placeholder="Couleurs, formes, texte visible, emplacement, dimensions approximatives…"></textarea></label>
+            <label>Notes et hypothèses à vérifier<textarea id="itemNotes" maxlength="4000" placeholder="Ex. motif comparable à une série ABC, mais référence inconnue"></textarea></label>
+            <div class="form-actions">
+              <button class="button primary" type="submit">Ajouter la fiche</button>
+            </div>
+          </form>
+        </div>
+
+        <div id="tabBatch" class="tab-panel" role="tabpanel" aria-labelledby="tab-batch" tabindex="0" hidden>
+          <form id="formBatch" class="stack-form">
+            <label>Agence / programme<select id="batchProgram" required></select></label>
+            <label>Une ligne par image<input id="batchInput" type="text" required placeholder="URL | référence facultative"></label>
+            <p class="field-help">Exemple : https://agency.example/image.jpg | 25-0004</p>
+            <div class="form-actions">
+              <button class="button primary" type="submit">Créer les fiches</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="manualTitle">
+        <h2 id="manualTitle">Recherche manuelle assistée</h2>
+        <p class="section-description">Collez l’adresse d’une page publique pour extraire son titre, sa description et son texte visible. Loupe lit cette page une seule fois, sans connexion, sans proxy et sans stockage. Vous pourrez ensuite créer une fiche à partir du résultat.</p>
+        <form id="manualForm" class="manual-form">
+          <label class="sr-only" for="manualUrl">Adresse de la page publique</label>
+          <input id="manualUrl" type="url" pattern="https://.+" title="L’adresse doit commencer par https://" placeholder="https://…" required autocomplete="url">
+          <button class="button primary" type="submit">Inspecter la page</button>
+        </form>
+        <p id="manualStatus" class="section-description" role="status"></p>
+      </section>
+
+      <section class="section" aria-labelledby="listTitle">
+        <div class="section-heading">
+          <h2 id="listTitle">Mes fiches <span id="itemCount" class="count">0</span></h2>
+          <div class="filters">
+            <label class="sr-only" for="filterSearch">Rechercher dans les fiches</label>
+            <input id="filterSearch" type="search" placeholder="Rechercher un mot, une marque, une référence…">
+            <label class="sr-only" for="filterProgram">Filtrer par programme</label>
+            <select id="filterProgram"></select>
+            <label class="sr-only" for="filterType">Filtrer par type</label>
+            <select id="filterType"></select>
+            <label class="sr-only" for="filterStatus">Filtrer par statut</label>
+            <select id="filterStatus">
+              <option value="">Tous les statuts</option>
+              <option value="to_review">À examiner</option>
+              <option value="lead_found">Piste trouvée</option>
+              <option value="reported">Signalé</option>
+            </select>
+          </div>
+        </div>
+        <div id="itemsGrid" class="items-grid"></div>
+        <p id="emptyState" class="empty-state" hidden>Aucune fiche pour le moment. Ajoutez une fiche pour commencer.</p>
+      </section>
+
+      <section class="section" aria-labelledby="batchAnalysisTitle">
+        <h2 id="batchAnalysisTitle">Analyser plusieurs fiches à la suite</h2>
+        <p class="section-description">Les fiches sont analysées l’une après l’autre. Vous pouvez arrêter à tout moment : la fiche en cours sera terminée.</p>
+        <div class="batch-controls">
+          <label class="check-control"><input id="skipAnalyzed" type="checkbox" checked>Ignorer les fiches déjà analysées</label>
+          <button id="btnAnalyzeAll" class="button primary" type="button">Lancer l’analyse</button>
+          <button id="btnStopAnalysis" class="button danger" type="button" hidden>Arrêter</button>
+        </div>
+        <div id="analysisProgress" class="progress" role="progressbar" aria-label="Avancement de l’analyse" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" hidden><div id="progressFill" class="progress-fill"></div><span id="progressText" aria-live="polite"></span></div>
+        <p id="analysisResults" class="section-description"></p>
+      </section>
+
+      <section class="section" aria-labelledby="linksTitle">
+        <div class="section-heading">
+          <div>
+            <h2 id="linksTitle">Comparer les fiches</h2>
+            <p class="section-description">Le score de comparaison additionne des indices observés (même référence, même page source, code-barres commun, marque, termes communs). Ce n’est ni une probabilité d’identification ni une preuve. Un score élevé peut aussi signifier que les deux fiches viennent de la même page officielle.</p>
+          </div>
+          <button id="btnCrossref" class="button secondary" type="button">Comparer</button>
+        </div>
+        <div id="crossrefResults" class="crossref-results"></div>
+      </section>
+
+      <section class="section" aria-labelledby="backupTitle">
+        <h2 id="backupTitle">Sauvegarde locale</h2>
+        <p class="section-description">Les fiches restent dans ce navigateur. Les images importées ou recadrées ne sont pas conservées : elles disparaissent dès que vous rechargez la page ou fermez l’onglet. Exportez régulièrement vos fiches au format JSON.</p>
+        <p class="field-help">Le fichier importé remplace les fiches actuellement enregistrées dans ce navigateur. Exportez-les d’abord si vous voulez les conserver.</p>
+        <div class="export-buttons">
+          <button id="btnExport" class="button secondary" type="button">Exporter en JSON</button>
+          <button id="btnImport" class="button secondary" type="button">Importer un fichier JSON</button>
+          <input id="importFile" type="file" accept="application/json,.json" hidden>
+        </div>
+      </section>
+
+      <footer class="footer">
+        <p><strong>Loupe</strong> est un outil communautaire gratuit, sans publicité ni abonnement.</p>
+        <p>Outil créé pour faciliter la recherche faite par les bénévoles.</p>
+        <p>Code source : <a href="https://github.com/slim57000/loupe" target="_blank" rel="noopener noreferrer">github.com/slim57000/loupe</a></p>
+        <p>Pour soutenir Loupe, aider les bénévoles à protéger les enfants : partagez le projet, contribuez au code et signalez les erreurs. Le projet reste gratuit, sans publicité et sans abonnement. Loupe ne prend aucun paiement et ne collecte aucune donation.</p>
+      </footer>
+    </main>
+  </div>
+
+  <template id="itemCardTemplate">
+    <article class="item-card">
+      <div class="card-header">
+        <span class="tag program-tag"></span>
+        <span class="tag type-tag"></span>
+        <select class="card-status" aria-label="Statut">
+          <option value="to_review">À examiner</option>
+          <option value="lead_found">Piste trouvée</option>
+          <option value="reported">Signalé</option>
+        </select>
+      </div>
+      <div class="card-image">
+        <img alt="" loading="lazy" referrerpolicy="no-referrer" hidden>
+        <div class="image-placeholder">Aucune image</div>
+        <canvas class="crop-canvas" hidden></canvas>
+      </div>
+      <div class="card-body">
+        <div class="card-ref"></div>
+        <p class="card-description"></p>
+        <p class="card-source"></p>
+        <div class="card-analysis" hidden></div>
+      </div>
+      <div class="card-actions">
+        <button class="button small primary analyze" type="button">Analyser</button>
+        <button class="button small secondary crop" type="button">Recadrer</button>
+        <button class="button small secondary reverse" type="button">Recherche inversée</button>
+        <button class="button small secondary replace" type="button">Importer une image</button>
+        <button class="button small secondary report" type="button">Signaler</button>
+        <button class="button small secondary summary" type="button">Modèle de signalement</button>
+        <button class="button small danger delete" type="button">Supprimer</button>
+      </div>
+    </article>
+  </template>
+
+  <dialog id="resultDialog" class="dialog" aria-labelledby="resultDialogTitle">
+    <div class="dialog-header">
+      <h2 id="resultDialogTitle">Résultats</h2>
+      <button id="btnCloseResultDialog" class="button secondary" type="button">Fermer</button>
+    </div>
+    <div id="resultDialogContent" class="dialog-content"></div>
+  </dialog>
+
+  <dialog id="cropDialog" class="dialog crop-dialog" aria-labelledby="cropDialogTitle">
+    <div class="dialog-header">
+      <h2 id="cropDialogTitle">Sélectionner la zone utile</h2>
+      <button id="btnCancelCrop" class="button secondary" type="button">Annuler</button>
+    </div>
+    <p class="section-description">Tracez un rectangle autour du logo, du tatouage, de la montre ou du détail à analyser.</p>
+    <canvas id="cropCanvas" class="crop-canvas-large"></canvas>
+    <div class="dialog-actions">
+      <button id="btnApplyCrop" class="button primary" type="button">Utiliser cette zone</button>
+    </div>
+  </dialog>
+
+  <input id="replaceImageInput" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+  <div id="toastRegion" class="toast-region" aria-live="polite"></div>
+  <script type="module" src="app.js"></script>
+</body>
+</html>

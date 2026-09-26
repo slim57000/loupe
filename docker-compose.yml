@@ -1,0 +1,48 @@
+services:
+  loupe:
+    build:
+      context: .
+      dockerfile: proxy/Dockerfile
+    image: phoenix57/loupe:latest
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+    networks:
+      - loupe-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      CADDY_DOMAIN: ${CADDY_DOMAIN}
+    networks:
+      - loupe-network
+    depends_on:
+      loupe:
+        condition: service_healthy
+    profiles:
+      - https
+
+networks:
+  loupe-network:
+
+volumes:
+  caddy_data:
+  caddy_config:

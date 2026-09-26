@@ -1,0 +1,16 @@
+.env
+.git
+.gitignore
+.github
+node_modules
+npm-debug.log*
+Dockerfile
+proxy/Dockerfile
+docker-compose.yml
+Caddyfile
+README.md
+CONTRIBUTING.md
+LICENSE
+test
+api
+vercel.json

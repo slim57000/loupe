@@ -1,0 +1,23 @@
+{
+  "name": "loupe",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Outil communautaire d’aide à l’identification d’objets et de détails pour signalements officiels",
+  "scripts": {
+    "dev": "node proxy/server.js",
+    "start": "node proxy/server.js",
+    "build": "node --check proxy/server.js && node --check public/app.js && node --check public/i18n.js && node --test test/*.test.js",
+    "lint": "node --check proxy/server.js && node --check public/app.js && node --check public/i18n.js",
+    "test": "node --test test/*.test.js"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
+    "node-html-parser": "^7.0.1"
+  }
+}
