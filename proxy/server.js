@@ -4,16 +4,11 @@ const net = require('node:net');
 const express = require('express');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const crypto = require('node:crypto');
 const path = require('node:path');
 require('dotenv').config();
 
 const app = express();
 const port = Number(process.env.PORT) || 3000;
-const accessTokens = (process.env.ACCESS_TOKENS || '')
-  .split(',')
-  .map((value) => value.trim())
-  .filter(Boolean);
 const maxImageBytes = Math.max(2, Math.min(10, Number(process.env.MAX_IMAGE_MB) || 10)) * 1024 * 1024;
 const maxJsonBytes = Math.ceil(maxImageBytes * 4 / 3) + 1024 * 1024;
 const externalJsonLimit = 4 * 1024 * 1024;
@@ -42,34 +37,13 @@ app.use(helmet({
 }));
 app.use(express.json({ limit: `${maxJsonBytes}b` }));
 
-function tokenMatches(candidate) {
-  return accessTokens.some((token) => {
-    const expected = Buffer.from(token);
-    const received = Buffer.from(candidate || '');
-    return expected.length === received.length && crypto.timingSafeEqual(expected, received);
-  });
-}
-
-function requireAccess(req, res, next) {
-  if (accessTokens.length === 0) {
-    req.accessRequired = false;
-    return next();
-  }
-  const token = req.get('X-Access-Token') || '';
-  if (!tokenMatches(token)) {
-    return res.status(401).json({ error: 'Code d’accès manquant ou invalide.' });
-  }
-  req.accessRequired = true;
-  return next();
-}
-
 app.get('/healthz', (req, res) => {
   res.set('Cache-Control', 'no-store').json({ status: 'ok' });
 });
 
 app.get('/api/public-config', (req, res) => {
   res.set('Cache-Control', 'no-store').json({
-    authRequired: accessTokens.length > 0,
+    authRequired: false,
     maxImageMb: Math.round(maxImageBytes / 1024 / 1024)
   });
 });
@@ -80,11 +54,11 @@ app.use('/api', rateLimit({
   standardHeaders: 'draft-7',
   legacyHeaders: false,
   message: { error: 'Trop de requêtes. Une analyse utilise plusieurs appels : attendez une minute ou augmentez RATE_LIMIT sur le serveur.' }
-}), requireAccess);
+}));
 
 app.get('/api/config', (req, res) => {
   res.set('Cache-Control', 'no-store').json({
-    authRequired: accessTokens.length > 0,
+    authRequired: false,
     maxImageMb: Math.round(maxImageBytes / 1024 / 1024),
     services: {
       vision: Boolean(process.env.GOOGLE_VISION_KEY),

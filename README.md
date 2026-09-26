@@ -80,13 +80,7 @@ Copy-Item .env.example .env
 
 Ouvrez `.env` et renseignez uniquement les services utiles. Sans clé, l’interface, les fiches, la compression, le recadrage d’une image importée, les liens de recherche manuelle, Wikidata, les catalogues ouverts et les codes-barres restent utilisables.
 
-Pour limiter l’accès à des bénévoles, générez un ou plusieurs codes :
-
-```powershell
-node -e "console.log(require('crypto').randomBytes(24).toString('hex'))"
-```
-
-Placez les codes dans `ACCESS_TOKENS`, séparés par des virgules.
+Loupe est accessible sans code d’accès. Pour un déploiement public, limitez l’accès réseau au niveau de l’hébergeur si nécessaire.
 
 ### 2. Lancer l’application
 
@@ -149,7 +143,6 @@ npm start
 | `UPCITEMS_KEY` | Non | Quota amélioré de codes-barres |
 | `EBAY_APP_ID` + `EBAY_CERT_ID` | Non | Recherche dans eBay |
 | `BESTBUY_KEY` | Non | Recherche Best Buy, principalement aux États-Unis |
-| `ACCESS_TOKENS` | Non | Codes d’accès séparés par des virgules |
 | `RATE_LIMIT` | Non | Requêtes autorisées par IP et par minute, valeur par défaut `60`. Une analyse de fiche peut utiliser 1 à 6 appels. |
 | `MAX_IMAGE_MB` | Non | Taille maximale après compression : `10` sur Docker, `3` sur Vercel |
 | `CADDY_DOMAIN` | Non | Domaine utilisé par le profil HTTPS |

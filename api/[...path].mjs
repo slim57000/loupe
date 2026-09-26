@@ -6,7 +6,7 @@ const { parse } = nodeHtmlParser;
 const portImageMb = Math.max(1, Math.min(3, Number(process.env.MAX_IMAGE_MB) || 3));
 const requestLimit = Number(process.env.RATE_LIMIT) || 60;
 const allowedHosts = new Set(['vision.googleapis.com', 'serpapi.com', 'www.googleapis.com', 'world.openfoodfacts.org', 'world.openproductsfacts.org', 'world.openbeautyfacts.org', 'api.upcitemdb.com', 'www.wikidata.org', 'api.ebay.com', 'api.bestbuy.com', 'www.dhs.gov', 'www.fbi.gov', 'www.europol.europa.eu']);
-const tokens = (process.env.ACCESS_TOKENS || '').split(',').map((value) => value.trim()).filter(Boolean);
+const tokens = [];
 
 function json(res, status, data) {
   res.status(status).setHeader('Cache-Control', 'no-store').json(data);
@@ -266,7 +266,7 @@ export default async function handler(req, res) {
     if (req.method === 'GET' && route === 'public-config') return json(res, 200, { authRequired: tokens.length > 0, maxImageMb: portImageMb });
     if (!authorized(req)) return json(res, 401, { error: 'Code d’accès manquant ou invalide.' });
     if (req.method === 'GET' && route === 'health') return json(res, 200, { status: 'ok' });
-    if (req.method === 'GET' && route === 'config') return json(res, 200, { services: { vision: Boolean(process.env.GOOGLE_VISION_KEY), serpapi: Boolean(process.env.SERPAPI_KEY), web: Boolean(process.env.SERPAPI_KEY || (process.env.GOOGLE_CSE_KEY && process.env.GOOGLE_CSE_CX)), products: true, upc: true, wikidata: true, manual: true, ebay: Boolean(process.env.EBAY_APP_ID && process.env.EBAY_CERT_ID), bestbuy: Boolean(process.env.BESTBUY_KEY) } });
+    if (req.method === 'GET' && route === 'config') return json(res, 200, { maxImageMb: portImageMb, services: { vision: Boolean(process.env.GOOGLE_VISION_KEY), serpapi: Boolean(process.env.SERPAPI_KEY), web: Boolean(process.env.SERPAPI_KEY || (process.env.GOOGLE_CSE_KEY && process.env.GOOGLE_CSE_CX)), products: true, upc: true, wikidata: true, manual: true, ebay: Boolean(process.env.EBAY_APP_ID && process.env.EBAY_CERT_ID), bestbuy: Boolean(process.env.BESTBUY_KEY) } });
     const input = req.method === 'POST' ? body(req) : {};
     if (req.method === 'POST' && route === 'vision/analyze') return json(res, 200, await visionAnalyze(input));
     if (req.method === 'POST' && route === 'search/products') return json(res, 200, { results: await searchProducts(text(input.query, 'query', 2, 180), countryCode(input.country)) });

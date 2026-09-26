@@ -1,7 +1,6 @@
 import { applyLanguage, confirmMessage, t, watchLanguageChanges } from './i18n.js';
 
 const STORAGE_KEY = 'loupe.items.v1';
-const TOKEN_KEY = 'loupe.access';
 const VERSION = 1;
 
 const programs = {
@@ -201,10 +200,6 @@ const state = {
 
 const byId = (id) => document.getElementById(id);
 const mainContent = byId('mainContent');
-const accessForm = byId('accessForm');
-const accessToken = byId('accessToken');
-const accessMessage = byId('accessMessage');
-const forgetAccess = byId('btnForgetAccess');
 const itemGrid = byId('itemsGrid');
 const toastRegion = byId('toastRegion');
 const resultDialog = byId('resultDialog');
@@ -302,11 +297,9 @@ function toast(message, type = 'info') {
 }
 
 async function api(path, options = {}) {
-  const token = sessionStorage.getItem(TOKEN_KEY);
   const headers = new Headers(options.headers || {});
   headers.set('Accept', 'application/json');
   if (options.body && !(options.body instanceof FormData)) headers.set('Content-Type', 'application/json');
-  if (token) headers.set('X-Access-Token', token);
   let response;
   try {
     response = await fetch(path, { ...options, headers });
@@ -323,15 +316,6 @@ async function api(path, options = {}) {
   return data;
 }
 
-function getToken() {
-  return sessionStorage.getItem(TOKEN_KEY) || '';
-}
-
-function setToken(value) {
-  if (value) sessionStorage.setItem(TOKEN_KEY, value);
-  else sessionStorage.removeItem(TOKEN_KEY);
-}
-
 async function initialize() {
   applyLanguage(state.language);
   if (!state.languageWatchStarted) {
@@ -345,54 +329,16 @@ async function initialize() {
   renderItems();
   bindEvents();
   try {
-    state.publicConfig = await fetch('/api/public-config', { cache: 'no-store' }).then((response) => {
-      if (!response.ok) throw new Error();
-      return response.json();
-    });
-    const savedToken = getToken();
-    if (!state.publicConfig.authRequired) {
-      await unlock();
-    } else if (savedToken) {
-      accessToken.value = savedToken;
-      await unlock();
-    } else {
-      forgetAccess.hidden = true;
-      accessMessage.textContent = 'Un code d’accès est requis sur cette instance.';
-      accessToken.focus();
-    }
-  } catch {
-    const existingRetry = byId('retryAccess');
-    existingRetry?.remove();
-    accessMessage.textContent = 'Impossible de contacter le serveur. Vérifiez qu’il est démarré et que l’adresse de Loupe est correcte.';
-    const retry = createElement('button', 'Réessayer', 'button secondary');
-    retry.type = 'button';
-    retry.id = 'retryAccess';
-    retry.addEventListener('click', initialize);
-    accessMessage.after(retry);
-  }
-}
-
-async function unlock() {
-  accessMessage.textContent = 'Vérification du code…';
-  try {
     state.serverConfig = await api('/api/config');
-    accessMessage.textContent = '';
-    accessForm.hidden = true;
+    state.publicConfig = state.serverConfig;
     mainContent.hidden = false;
     renderServices();
-    renderPrograms();
-    populateProgramSelects();
-    renderFilters();
   } catch (error) {
-    if (error.status === 401) {
-      setToken('');
-      accessToken.value = '';
-      forgetAccess.hidden = false;
-      accessMessage.textContent = 'Code d’accès manquant ou invalide.';
-      accessToken.focus();
-      return;
-    }
-    accessMessage.textContent = error.message;
+    state.serverConfig = { services: {} };
+    state.publicConfig = { maxImageMb: 3 };
+    mainContent.hidden = false;
+    renderServices();
+    toast('Le serveur de recherche est indisponible. Les fonctions hors ligne restent utilisables.', 'error');
   }
 }
 
@@ -514,19 +460,6 @@ function bindEvents() {
     state.language = event.target.value === 'en' ? 'en' : 'fr';
     localStorage.setItem('loupe.language', state.language);
     applyLanguage(state.language);
-  });
-  accessForm.addEventListener('submit', async (event) => {
-    event.preventDefault();
-    setToken(accessToken.value.trim());
-    await unlock();
-  });
-  forgetAccess.addEventListener('click', () => {
-    setToken('');
-    accessToken.value = '';
-    mainContent.hidden = true;
-    accessForm.hidden = false;
-    forgetAccess.hidden = true;
-    accessMessage.textContent = 'Code effacé.';
   });
   byId('itemProgram').addEventListener('change', updateTypeOptions);
   for (const button of document.querySelectorAll('.tab')) {
