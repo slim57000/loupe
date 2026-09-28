@@ -112,6 +112,56 @@ docker compose --profile https up -d --build
 
 Caddy obtient automatiquement le certificat TLS. Le port direct de Loupe reste lié à `127.0.0.1` et n’est pas exposé publiquement.
 
+## Déploiement sur un VPS Ubuntu
+
+`deploy/installer-vps.sh` installe Docker, ouvre uniquement les ports 22, 80 et 443 dans le pare-feu, clone le dépôt dans `/opt/loupe`, crée le fichier `.env` et lance la pile avec HTTPS.
+
+Créez d’abord un enregistrement DNS A vers l’adresse IP du serveur, puis lancez :
+
+```bash
+sudo ./deploy/installer-vps.sh loupe.exemple.org
+```
+
+Le script est réexécutable : il met le dépôt à jour, conserve le fichier `.env` et reconstruit l’image. Ajoutez les clés API dans `/opt/loupe/.env`, puis relancez-le pour les appliquer.
+
+### Durcir le serveur
+
+`deploy/secure-vps.sh` garde l’accès par mot de passe et n’ajoute aucune clé. Il interdit la connexion directe de `root`, limite les tentatives SSH avec fail2ban, ouvre uniquement les ports 22, 80 et 443 dans le pare-feu, applique les correctifs de sécurité automatiquement et retire quelques options noyau inutiles.
+
+```bash
+sudo ./deploy/secure-vps.sh --utilisateur loupe
+```
+
+Le script n’ajoute pas de compte si vous l’appelez sans `--utilisateur`. Dans ce cas, vérifiez que vous disposez déjà d’un accès sudo avant de fermer votre session.
+
+Gardez toujours une session ouverte pendant la manipulation, et testez la connexion dans un second terminal. Pour revenir en arrière :
+
+```bash
+sudo rm -f /etc/ssh/sshd_config.d/99-loupe-hardening.conf
+sudo systemctl reload ssh
+```
+
+Commandes utiles sur le serveur :
+
+```bash
+cd /opt/loupe
+docker compose --profile https logs -f loupe
+docker compose --profile https logs -f caddy
+docker compose ps
+docker compose --profile https restart loupe
+docker compose down
+```
+
+Les journaux sont limités à trois fichiers de 10 Mo par service, et le conteneur Loupe s’exécute sans privilège, sans capacité système et avec `no-new-privileges`. Seul Caddy est exposé sur le réseau ; le port 3000 reste lié à la boucle locale.
+
+### Quand Caddy n’obtient pas de certificat
+
+- Le domaine ne pointe pas encore vers l’IP du serveur, ou le DNS n’a pas propagé.
+- Les ports 80 et 443 sont bloqués par un pare-feu en amont du serveur.
+- Un autre service occupe déjà le port 80.
+
+Le certificat s’obtient automatiquement, sans intervention. Relancez `docker compose --profile https logs caddy` pour lire la raison exacte.
+
 ## Option Vercel
 
 Le dépôt contient aussi une fonction Vercel pour un déploiement de démonstration ou un petit serveur. Le projet principal reste Docker.
@@ -144,6 +194,7 @@ npm start
 | `EBAY_APP_ID` + `EBAY_CERT_ID` | Non | Recherche dans eBay |
 | `BESTBUY_KEY` | Non | Recherche Best Buy, principalement aux États-Unis |
 | `RATE_LIMIT` | Non | Requêtes autorisées par IP et par minute, valeur par défaut `60`. Une analyse de fiche peut utiliser 1 à 6 appels. |
+| `TRUST_PROXY` | Non | Réseaux dont le proxy de confiance est accepté. `loopback` seul casse la limitation par IP derrière Caddy sur Docker : le réseau du pont n’est pas la boucle locale. `docker-compose.yml` impose `loopback, linklocal, uniquelocal`. |
 | `MAX_IMAGE_MB` | Non | Taille maximale après compression : `10` sur Docker, `3` sur Vercel |
 | `CADDY_DOMAIN` | Non | Domaine utilisé par le profil HTTPS |
 

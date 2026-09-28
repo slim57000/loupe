@@ -16,7 +16,7 @@ const requestLimit = Number(process.env.RATE_LIMIT) || 60;
 const publicDirectory = path.join(__dirname, '..', 'public');
 
 app.disable('x-powered-by');
-app.set('trust proxy', 'loopback');
+app.set('trust proxy', process.env.TRUST_PROXY || 'loopback');
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
@@ -290,6 +290,28 @@ function countryCode(value) {
   return result;
 }
 
+function visionErrorMessage(status, reason) {
+  if (status === 400 && /API key not valid/i.test(reason)) {
+    return 'Clé API Google Vision invalide ou mal recopiée sur le serveur.';
+  }
+  if (status === 400 && /API has not been used/i.test(reason)) {
+    return 'API Cloud Vision non activée sur le projet Google.';
+  }
+  if (status === 403 && /SERVICE_DISABLED/i.test(reason)) {
+    return 'API Cloud Vision désactivée sur le projet Google.';
+  }
+  if (status === 403 && /PERMISSION_DENIED|API_KEY.*not authorized|restrict/i.test(reason)) {
+    return 'Clé API refusée : vérifie sa restriction par API et par IP sur le projet Google.';
+  }
+  if (status === 429) {
+    return 'Quota Google Vision épuisé ou facturation inactive sur le projet.';
+  }
+  if (status === 400 && /URL is not allowed|Failed to fetch/i.test(reason)) {
+    return "Google n'a pas pu lire cette image. Utilise une adresse HTTPS publique.";
+  }
+  return 'Analyse refusée par Google Vision. Détail sur le serveur : voir les journaux.';
+}
+
 function sendError(res, error, route) {
   const status = Number(error.status) || 500;
   if (status >= 500) console.error(route, error.message || error.name || 'Erreur');
@@ -524,7 +546,10 @@ app.post('/api/vision/analyze', async (req, res) => {
     });
     const data = await readLimited(response);
     if (data.error || data.responses?.[0]?.error) {
-      const error = new Error('Analyse refusée par Google Vision.');
+      const upstream = data.error || data.responses[0].error;
+      const reason = upstream.message || JSON.stringify(upstream);
+      console.error(`[vision] Google a refuse la requete (${response.status}) : ${reason}`);
+      const error = new Error(visionErrorMessage(response.status, reason));
       error.status = 400;
       throw error;
     }

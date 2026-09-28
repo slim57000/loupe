@@ -11,8 +11,19 @@ services:
       - .env
     environment:
       NODE_ENV: production
+      TRUST_PROXY: loopback, linklocal, uniquelocal
     networks:
       - loupe-network
+    stop_grace_period: 20s
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://127.0.0.1:3000/healthz"]
       interval: 30s
@@ -37,6 +48,11 @@ services:
     depends_on:
       loupe:
         condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
     profiles:
       - https
 

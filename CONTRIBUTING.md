@@ -41,7 +41,11 @@ Si l’image Docker ne peut pas être construite dans votre environnement, indiq
 - `public/style.css` : interface responsive claire et accessible.
 - `proxy/server.js` : API Docker, authentification, validation et appels externes.
 - `test/server.test.js` : tests du serveur.
+- `test/trust-proxy.test.js` : tests du proxy de confiance.
 - `proxy/Dockerfile` et `docker-compose.yml` : déploiement.
+- `deploy/installer-vps.sh` : installation sur un VPS Ubuntu.
+- `deploy/secure-vps.sh` : durcissement d’un VPS Ubuntu, mot de passe SSH conservé.
+- `api/` : fonctions Vercel équivalentes à l’API Docker.
 
 ## Principes d’interface
 
