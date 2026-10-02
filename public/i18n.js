@@ -1,7 +1,11 @@
 const english = {
   '100 % à code source ouvert · gratuit · sans publicité': '100% open source · free · no advertising',
   'Aide les bénévoles à rechercher des objets et détails visibles dans les images anonymisées publiées par les autorités.': 'Helps volunteers research objects and details visible in anonymised images published by the authorities.',
-  'Langue': 'Language',
+    'Langue': 'Language',
+    'Thème': 'Theme',
+    'Système': 'System',
+    'Clair': 'Light',
+    'Sombre': 'Dark',
   'Français': 'Français',
   'English': 'English',
   'À savoir avant de commencer': 'Before you start',

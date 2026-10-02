@@ -182,9 +182,25 @@ const hotlines = [
   }
 ];
 
+const THEME_KEY = 'loupe.theme';
+
+function loadTheme() {
+  const stored = localStorage.getItem(THEME_KEY);
+  return ['light', 'dark', 'auto'].includes(stored) ? stored : 'auto';
+}
+
+function applyTheme(theme) {
+  if (theme === 'light' || theme === 'dark') {
+    document.documentElement.dataset.theme = theme;
+  } else {
+    delete document.documentElement.dataset.theme;
+  }
+}
+
 const state = {
   items: loadItems(),
   language: localStorage.getItem('loupe.language') === 'en' ? 'en' : 'fr',
+  theme: loadTheme(),
   sessionImages: new Map(),
   serverConfig: null,
   publicConfig: null,
@@ -317,6 +333,7 @@ async function api(path, options = {}) {
 }
 
 async function initialize() {
+  applyTheme(state.theme);
   applyLanguage(state.language);
   if (!state.languageWatchStarted) {
     watchLanguageChanges();
@@ -460,6 +477,13 @@ function bindEvents() {
     state.language = event.target.value === 'en' ? 'en' : 'fr';
     localStorage.setItem('loupe.language', state.language);
     applyLanguage(state.language);
+  });
+  byId('themeSelect').value = state.theme;
+  byId('themeSelect').addEventListener('change', (event) => {
+    const next = ['light', 'dark', 'auto'].includes(event.target.value) ? event.target.value : 'auto';
+    state.theme = next;
+    localStorage.setItem(THEME_KEY, next);
+    applyTheme(next);
   });
   byId('itemProgram').addEventListener('change', updateTypeOptions);
   for (const button of document.querySelectorAll('.tab')) {

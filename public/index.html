@@ -7,6 +7,7 @@
   <meta name="color-scheme" content="light dark">
   <title>Loupe — Aide à l’identification pour signalements</title>
   <link rel="stylesheet" href="style.css">
+  <script src="theme.js"></script>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Ccircle cx='26' cy='26' r='17' fill='none' stroke='%230969da' stroke-width='8'/%3E%3Cpath d='m39 39 16 16' stroke='%230969da' stroke-width='8' stroke-linecap='round'/%3E%3C/svg%3E">
 </head>
 <body>
@@ -25,6 +26,14 @@
             <option value="en">English</option>
           </select>
         </label>
+        <label class="language-control">
+          <span id="themeLabel">Thème</span>
+          <select id="themeSelect">
+            <option value="auto">Système</option>
+            <option value="light">Clair</option>
+            <option value="dark">Sombre</option>
+          </select>
+        </label>
       </div>
     </header>
 
@@ -34,14 +43,14 @@
         <p>Utilisez uniquement des images anonymisées publiées par un programme officiel. L’image ou les termes de recherche sont transmis au service externe configuré sur cette instance. Le serveur ne conserve aucune image. Ne contactez pas une personne et ne la démasquez pas : transmettez les informations à l’agence qui publie l’image.</p>
       </aside>
 
-      <section class="section" aria-labelledby="stepsTitle">
-        <h2 id="stepsTitle">Mode d’emploi</h2>
+      <details class="section" id="stepsSection">
+        <summary id="stepsTitle">Mode d’emploi</summary>
         <ol class="steps">
           <li><strong>Choisissez le programme</strong><span>Les liens et formulaires correspondent à l’agence.</span></li>
           <li><strong>Ajoutez l’image ou son adresse</strong><span>Recadrez si nécessaire, puis lancez l’analyse.</span></li>
           <li><strong>Vérifiez les sources</strong><span>Ouvrez les résultats et transmettez uniquement les indices vérifiés.</span></li>
         </ol>
-      </section>
+      </details>
 
       <details class="section" id="programsSection" open>
         <summary id="programsTitle">Agences et programmes officiels</summary>

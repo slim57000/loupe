@@ -19,6 +19,7 @@ Le programme Interpol [Identify Me](https://www.interpol.int/en/What-you-can-do/
 ## Fonctionnalités
 
 - Basculer immédiatement l’interface entre le français et l’anglais.
+- Choisir le thème clair, sombre ou celui du système, mémorisé dans le navigateur.
 - Importer automatiquement les objets publiés par Identify2Protect (DHS) et Trace an Object (Europol).
 - Utiliser l’import par liste d’adresses pour les pages qui ne permettent pas l’import automatique, comme ECAP.
 - Préparer un signalement avec le modèle de l’agence : DHS/HSI, Europol ou FBI/NCMEC.
@@ -199,6 +200,12 @@ npm start
 | `CADDY_DOMAIN` | Non | Domaine utilisé par le profil HTTPS |
 
 Aucune clé n’est demandée aux bénévoles. L’exploitant du serveur peut choisir des quotas gratuits ou des services payants pour son instance ; Loupe ne propose ni publicité ni abonnement aux utilisateurs.
+
+## Navigateurs pris en charge
+
+L’interface utilise `light-dark()` pour le thème clair et sombre. Cette fonction est disponible depuis mai 2024 dans Chrome et Edge, depuis décembre 2023 dans Firefox et depuis la version 17.5 de Safari. Sur un navigateur plus ancien, l’interface reste utilisable mais s’affiche avec le thème clair.
+
+Le cache dure une heure pour les fichiers statiques. Après une mise à jour, un rechargement forcé du navigateur est nécessaire pour voir la nouvelle version.
 
 ## Traitement des images
 

@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "node proxy/server.js",
     "start": "node proxy/server.js",
-    "build": "node --check proxy/server.js && node --check public/app.js && node --check public/i18n.js && node --test test/*.test.js",
-    "lint": "node --check proxy/server.js && node --check public/app.js && node --check public/i18n.js",
+    "build": "node --check proxy/server.js && node --check public/app.js && node --check public/i18n.js && node --check public/theme.js && node --test test/*.test.js",
+    "lint": "node --check proxy/server.js && node --check public/app.js && node --check public/i18n.js && node --check public/theme.js",
     "test": "node --test test/*.test.js"
   },
   "engines": {

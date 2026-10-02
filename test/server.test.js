@@ -47,6 +47,17 @@ test('la page et le client sont servis', async () => {
   assert.match(await translations.text(), /export function applyLanguage/);
 });
 
+test('le thème est appliqué avant le rendu de la page', async () => {
+  const html = await (await fetch(`${baseUrl}/`)).text();
+  const theme = await (await fetch(`${baseUrl}/theme.js`)).text();
+  assert.match(html, /id="themeSelect"/);
+  assert.match(html, /id="stepsSection"/);
+  assert.match(html, /id="programsSection"/);
+  assert.match(theme, /loupe\.theme/);
+  assert.ok(html.indexOf('theme.js') < html.indexOf('app.js'), 'theme.js doit preceder app.js');
+  assert.ok(html.indexOf('theme.js') < html.indexOf('id="mainContent"'), 'theme.js doit precéder le contenu visible');
+});
+
 test('une route API inconnue renvoie 404', async () => {
   const response = await fetch(`${baseUrl}/api/inconnue`, { method: 'POST' });
   assert.equal(response.status, 404);
